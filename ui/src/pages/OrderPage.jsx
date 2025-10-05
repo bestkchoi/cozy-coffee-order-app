@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import MenuCard from '../components/MenuCard';
 import Cart from '../components/Cart';
 import { menuItems } from '../data/menuData';
@@ -7,7 +7,7 @@ import './OrderPage.css';
 function OrderPage() {
   const [cartItems, setCartItems] = useState([]);
 
-  const addToCart = (menuItem) => {
+  const addToCart = useCallback((menuItem) => {
     const optionsPrice = menuItem.selectedOptions.reduce((total, option) => total + option.price, 0);
     const totalPrice = menuItem.price + optionsPrice;
     
@@ -36,7 +36,7 @@ function OrderPage() {
       };
       setCartItems([...cartItems, newCartItem]);
     }
-  };
+  }, [cartItems]);
 
   const updateQuantity = (itemId, newQuantity) => {
     const updatedCart = cartItems.map(item => {
@@ -62,6 +62,10 @@ function OrderPage() {
       alert('장바구니가 비어있습니다.');
       return;
     }
+
+    // 주문 확인
+    const confirmOrder = window.confirm('정말 주문하시겠습니까?');
+    if (!confirmOrder) return;
 
     const totalAmount = cartItems.reduce((total, item) => total + item.totalPrice, 0);
     const orderDetails = cartItems.map(item => 

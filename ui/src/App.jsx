@@ -12,16 +12,18 @@ function App() {
         <div className="brand">
           <h1>COZY</h1>
         </div>
-        <nav className="navigation">
+        <nav className="navigation" role="navigation" aria-label="메인 네비게이션">
           <button 
             className={currentPage === 'order' ? 'nav-button active' : 'nav-button'}
             onClick={() => setCurrentPage('order')}
+            aria-current={currentPage === 'order' ? 'page' : undefined}
           >
             주문하기
           </button>
           <button 
             className={currentPage === 'admin' ? 'nav-button active' : 'nav-button'}
             onClick={() => setCurrentPage('admin')}
+            aria-current={currentPage === 'admin' ? 'page' : undefined}
           >
             관리자
           </button>

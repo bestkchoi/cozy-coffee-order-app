@@ -43,6 +43,13 @@
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.2s;
+  font-size: 1rem;
+  min-height: 44px; /* 접근성을 위한 최소 터치 타겟 크기 */
+}
+
+.nav-button:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
 }
 
 .nav-button:hover {

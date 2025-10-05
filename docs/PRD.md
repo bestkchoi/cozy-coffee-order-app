@@ -207,8 +207,319 @@ enum OrderStatus {
 - **주문 상태 변경**: 주문 상태 변경 시 대시보드 요약 정보 자동 업데이트
 - **새 주문 알림**: 새로운 주문 발생 시 주문 현황에 자동 추가
 
-## 5. 기본 사항
+## 5. 백엔드 개발 사양
+
+### 5.1 데이터 모델 설계
+
+#### 5.1.1 Menus 테이블
+```sql
+CREATE TABLE menus (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  price INTEGER NOT NULL,
+  image_url VARCHAR(255),
+  stock INTEGER DEFAULT 0,
+  category VARCHAR(50) DEFAULT 'coffee',
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### 5.1.2 Options 테이블
+```sql
+CREATE TABLE options (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  price INTEGER DEFAULT 0,
+  menu_id INTEGER REFERENCES menus(id) ON DELETE CASCADE,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### 5.1.3 Orders 테이블
+```sql
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  order_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'received',
+  total_amount INTEGER NOT NULL,
+  items JSONB NOT NULL, -- 주문 아이템 상세 정보
+  customer_info JSONB, -- 향후 확장을 위한 고객 정보
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 5.2 사용자 흐름 및 데이터 스키마
+
+#### 5.2.1 메뉴 조회 흐름
+1. **프론트엔드**: 메인 페이지 로드 시 `/api/menus` API 호출
+2. **백엔드**: Menus 테이블에서 활성 메뉴 조회
+3. **백엔드**: 각 메뉴의 Options 테이블 조회하여 옵션 정보 포함
+4. **응답**: 메뉴 목록과 옵션 정보를 JSON 형태로 반환
+
+#### 5.2.2 장바구니 관리 흐름
+1. **프론트엔드**: 사용자가 메뉴 선택 시 로컬 상태로 관리
+2. **프론트엔드**: 장바구니에 선택된 메뉴, 수량, 옵션 정보 저장
+3. **프론트엔드**: 실시간으로 총 금액 계산 및 표시
+
+#### 5.2.3 주문 생성 흐름
+1. **프론트엔드**: '주문하기' 버튼 클릭 시 주문 정보 수집
+2. **백엔드**: `/api/orders` POST 요청으로 주문 정보 전송
+3. **백엔드**: Orders 테이블에 주문 정보 저장
+4. **백엔드**: 주문된 메뉴의 재고 수량 차감 (Menus 테이블 업데이트)
+5. **응답**: 주문 ID와 함께 성공 응답 반환
+
+#### 5.2.4 관리자 주문 관리 흐름
+1. **프론트엔드**: 관리자 화면 로드 시 `/api/orders` GET 요청
+2. **백엔드**: 모든 주문 정보 조회하여 반환
+3. **프론트엔드**: 주문 상태별로 분류하여 표시
+4. **백엔드**: `/api/orders/:id/status` PUT 요청으로 상태 변경
+5. **백엔드**: Orders 테이블의 status 필드 업데이트
+
+### 5.3 API 설계
+
+#### 5.3.1 메뉴 관련 API
+
+**GET /api/menus**
+- **목적**: 활성 메뉴 목록 조회
+- **응답**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "아메리카노(ICE)",
+      "description": "진한 에스프레소에 시원한 얼음을 넣은 클래식 아메리카노",
+      "price": 4000,
+      "image_url": "/images/americano-ice.jpg",
+      "stock": 10,
+      "category": "coffee",
+      "options": [
+        {
+          "id": 1,
+          "name": "샷 추가",
+          "price": 500
+        },
+        {
+          "id": 2,
+          "name": "시럽 추가",
+          "price": 0
+        }
+      ]
+    }
+  ]
+}
+```
+
+**GET /api/menus/:id**
+- **목적**: 특정 메뉴 상세 정보 조회
+- **응답**: 단일 메뉴 객체
+
+#### 5.3.2 주문 관련 API
+
+**POST /api/orders**
+- **목적**: 새 주문 생성
+- **요청 본문**:
+```json
+{
+  "items": [
+    {
+      "menu_id": 1,
+      "menu_name": "아메리카노(ICE)",
+      "quantity": 2,
+      "selected_options": [
+        {
+          "option_id": 1,
+          "option_name": "샷 추가",
+          "price": 500
+        }
+      ],
+      "item_total_price": 9000
+    }
+  ],
+  "total_amount": 9000
+}
+```
+- **응답**:
+```json
+{
+  "success": true,
+  "data": {
+    "order_id": 123,
+    "order_time": "2024-07-31T13:00:00Z",
+    "status": "received",
+    "total_amount": 9000
+  }
+}
+```
+
+**GET /api/orders**
+- **목적**: 모든 주문 목록 조회 (관리자용)
+- **응답**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 123,
+      "order_time": "2024-07-31T13:00:00Z",
+      "status": "received",
+      "total_amount": 9000,
+      "items": [
+        {
+          "menu_name": "아메리카노(ICE)",
+          "quantity": 2,
+          "selected_options": ["샷 추가"],
+          "item_total_price": 9000
+        }
+      ]
+    }
+  ]
+}
+```
+
+**PUT /api/orders/:id/status**
+- **목적**: 주문 상태 변경
+- **요청 본문**:
+```json
+{
+  "status": "preparing"
+}
+```
+- **응답**:
+```json
+{
+  "success": true,
+  "data": {
+    "order_id": 123,
+    "status": "preparing",
+    "updated_at": "2024-07-31T13:05:00Z"
+  }
+}
+```
+
+**GET /api/orders/:id**
+- **목적**: 특정 주문 상세 정보 조회
+- **응답**: 단일 주문 객체
+
+#### 5.3.3 관리자 관련 API
+
+**GET /api/admin/dashboard**
+- **목적**: 관리자 대시보드 통계 정보 조회
+- **응답**:
+```json
+{
+  "success": true,
+  "data": {
+    "total_orders": 15,
+    "received_orders": 3,
+    "preparing_orders": 2,
+    "completed_orders": 10
+  }
+}
+```
+
+**PUT /api/admin/menus/:id/stock**
+- **목적**: 메뉴 재고 수량 변경
+- **요청 본문**:
+```json
+{
+  "stock": 15
+}
+```
+- **응답**:
+```json
+{
+  "success": true,
+  "data": {
+    "menu_id": 1,
+    "stock": 15,
+    "updated_at": "2024-07-31T13:10:00Z"
+  }
+}
+```
+
+### 5.4 에러 처리
+
+#### 5.4.1 공통 에러 응답 형식
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "잘못된 요청입니다.",
+    "details": "필수 필드가 누락되었습니다."
+  }
+}
+```
+
+#### 5.4.2 주요 에러 코드
+- `INVALID_REQUEST`: 잘못된 요청 형식
+- `MENU_NOT_FOUND`: 메뉴를 찾을 수 없음
+- `ORDER_NOT_FOUND`: 주문을 찾을 수 없음
+- `INSUFFICIENT_STOCK`: 재고 부족
+- `INVALID_STATUS`: 잘못된 주문 상태
+- `INTERNAL_ERROR`: 서버 내부 오류
+
+### 5.5 데이터베이스 시드 데이터
+
+#### 5.5.1 초기 메뉴 데이터
+```sql
+INSERT INTO menus (name, description, price, stock, category) VALUES
+('아메리카노(ICE)', '진한 에스프레소에 시원한 얼음을 넣은 클래식 아메리카노', 4000, 10, 'coffee'),
+('아메리카노(HOT)', '따뜻한 에스프레소에 뜨거운 물을 넣은 클래식 아메리카노', 4000, 8, 'coffee'),
+('카페라떼', '부드러운 우유 거품과 에스프레소의 완벽한 조화', 5000, 12, 'coffee'),
+('카페모카', '초콜릿과 에스프레소, 우유의 달콤한 만남', 5500, 5, 'coffee'),
+('카푸치노', '진한 에스프레소와 부드러운 우유 거품의 클래식', 5000, 7, 'coffee'),
+('바닐라라떼', '달콤한 바닐라 시럽이 들어간 부드러운 라떼', 5500, 9, 'coffee');
+```
+
+#### 5.5.2 초기 옵션 데이터
+```sql
+INSERT INTO options (name, price, menu_id) VALUES
+('샷 추가', 500, 1), ('시럽 추가', 0, 1),
+('샷 추가', 500, 2), ('시럽 추가', 0, 2),
+('샷 추가', 500, 3), ('시럽 추가', 0, 3),
+('샷 추가', 500, 4), ('시럽 추가', 0, 4),
+('샷 추가', 500, 5), ('시럽 추가', 0, 5),
+('샷 추가', 500, 6), ('시럽 추가', 0, 6);
+```
+
+### 5.6 기술 스택 및 환경 설정
+
+#### 5.6.1 백엔드 기술 스택
+- **Runtime**: Node.js (v18 이상)
+- **Framework**: Express.js
+- **Database**: PostgreSQL
+- **ORM**: Prisma 또는 Sequelize
+- **Validation**: Joi 또는 Yup
+- **Environment**: dotenv
+
+#### 5.6.2 개발 환경 설정
+```javascript
+// package.json dependencies
+{
+  "express": "^4.18.0",
+  "pg": "^8.8.0",
+  "prisma": "^4.0.0",
+  "@prisma/client": "^4.0.0",
+  "joi": "^17.7.0",
+  "cors": "^2.8.5",
+  "helmet": "^6.0.0",
+  "dotenv": "^16.0.0"
+}
+```
+
+## 6. 기본 사항
 - 프런트엔드와 백엔드를 따로 개발
 - 기본적인 웹 기술만 사용
 - 학습 목적이므로 사용자 인증이나 결제 기능은 제외
 - 메뉴는 커피 메뉴만 있음
+- RESTful API 설계 원칙 준수
+- 데이터베이스 정규화 및 관계 설정

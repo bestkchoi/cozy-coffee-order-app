@@ -3,6 +3,8 @@ import { getStockStatus } from '../data/adminData';
 import './InventoryManagement.css';
 
 function InventoryManagement({ inventory, onUpdateStock }) {
+  console.log('InventoryManagement 렌더링:', { inventory, onUpdateStock });
+  
   const handleStockChange = (itemId, change) => {
     const currentItem = inventory.find(item => item.id === itemId);
     if (currentItem) {
@@ -16,13 +18,14 @@ function InventoryManagement({ inventory, onUpdateStock }) {
       <h2 className="inventory-title">재고 현황</h2>
       <div className="inventory-grid">
         {inventory.map(item => {
-          const stockStatus = getStockStatus(item.stock);
+          const stock = item.stock || 0;
+          const stockStatus = getStockStatus(stock);
           return (
             <div key={item.id} className="inventory-item">
               <div className="item-info">
                 <div className="item-name">{item.name}</div>
                 <div className="stock-info">
-                  <span className="stock-count">{item.stock}개</span>
+                  <span className="stock-count">{stock}개</span>
                   <span 
                     className="stock-status"
                     style={{ color: stockStatus.color }}
@@ -35,7 +38,7 @@ function InventoryManagement({ inventory, onUpdateStock }) {
                 <button 
                   className="stock-btn decrease"
                   onClick={() => handleStockChange(item.id, -1)}
-                  disabled={item.stock <= 0}
+                  disabled={stock <= 0}
                 >
                   -
                 </button>

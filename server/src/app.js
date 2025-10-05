@@ -4,10 +4,10 @@ const helmet = require('helmet');
 const config = require('../config');
 const { testConnection } = require('./utils/database');
 
-// 라우터 임포트 (향후 추가)
-// const menuRoutes = require('./routes/menuRoutes');
-// const orderRoutes = require('./routes/orderRoutes');
-// const adminRoutes = require('./routes/adminRoutes');
+// 라우터 임포트
+const menuRoutes = require('./routes/menuRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -27,10 +27,10 @@ app.get('/', (req, res) => {
   });
 });
 
-// API 라우트 (향후 추가)
-// app.use('/api/menus', menuRoutes);
-// app.use('/api/orders', orderRoutes);
-// app.use('/api/admin', adminRoutes);
+// API 라우트
+app.use('/api/menus', menuRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 에러 핸들러
 app.use((req, res) => {

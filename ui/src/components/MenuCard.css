@@ -67,19 +67,19 @@
 .option-item {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   cursor: pointer;
 }
 
 .option-item input[type="checkbox"] {
-  margin-right: 8px;
-  width: 16px;
-  height: 16px;
+  margin-right: 6px;
+  width: 14px;
+  height: 14px;
   accent-color: #007bff;
 }
 
 .option-text {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #555;
 }
 

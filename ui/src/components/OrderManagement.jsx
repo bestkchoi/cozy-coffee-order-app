@@ -2,52 +2,94 @@ import { ORDER_STATUS } from '../data/adminData';
 import './OrderManagement.css';
 
 function OrderManagement({ orders, onUpdateOrderStatus }) {
+  console.log('OrderManagement 렌더링:', { orders, onUpdateOrderStatus });
+  
   const formatDateTime = (dateTime) => {
-    return dateTime.toLocaleDateString('ko-KR', {
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      // Date 객체인지 확인하고, 아니면 Date 객체로 변환
+      let date;
+      if (dateTime instanceof Date) {
+        date = dateTime;
+      } else if (typeof dateTime === 'string') {
+        date = new Date(dateTime);
+      } else {
+        console.warn('Invalid dateTime:', dateTime);
+        return '날짜 정보 없음';
+      }
+      
+      // 유효한 날짜인지 확인
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', dateTime);
+        return '날짜 정보 없음';
+      }
+      
+      return date.toLocaleDateString('ko-KR', {
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('날짜 포맷 오류:', error, dateTime);
+      return '날짜 정보 없음';
+    }
   };
 
   const formatOrderItems = (items) => {
-    return items.map(item => `${item.name} x ${item.quantity}`).join(', ');
+    if (!items || !Array.isArray(items)) return '';
+    
+    return items.map(item => {
+      // 백엔드 데이터 구조 처리
+      if (item.menu_name) {
+        return `${item.menu_name} x ${item.quantity}`;
+      }
+      // 로컬 데이터 구조 처리
+      if (item.name) {
+        return `${item.name} x ${item.quantity}`;
+      }
+      return '';
+    }).join(', ');
   };
 
   const getNextStatus = (currentStatus) => {
-    switch (currentStatus) {
-      case ORDER_STATUS.RECEIVED:
-        return ORDER_STATUS.PREPARING;
-      case ORDER_STATUS.PREPARING:
-        return ORDER_STATUS.COMPLETED;
-      default:
-        return null;
+    // 백엔드 상태값과 로컬 상태값 모두 처리
+    if (currentStatus === 'received' || currentStatus === ORDER_STATUS.RECEIVED) {
+      return 'preparing';
     }
+    if (currentStatus === 'preparing' || currentStatus === ORDER_STATUS.PREPARING) {
+      return 'completed';
+    }
+    return null;
   };
 
   const getStatusButtonText = (currentStatus) => {
-    switch (currentStatus) {
-      case ORDER_STATUS.RECEIVED:
-        return '제조 시작';
-      case ORDER_STATUS.PREPARING:
-        return '제조 완료';
-      default:
-        return '완료됨';
+    if (currentStatus === 'received' || currentStatus === ORDER_STATUS.RECEIVED) {
+      return '제조 시작';
     }
+    if (currentStatus === 'preparing' || currentStatus === ORDER_STATUS.PREPARING) {
+      return '제조 완료';
+    }
+    return '완료됨';
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case ORDER_STATUS.RECEIVED:
-        return '#007bff';
-      case ORDER_STATUS.PREPARING:
-        return '#ffc107';
-      case ORDER_STATUS.COMPLETED:
-        return '#28a745';
-      default:
-        return '#6c757d';
+    if (status === 'received' || status === ORDER_STATUS.RECEIVED) {
+      return '#007bff';
     }
+    if (status === 'preparing' || status === ORDER_STATUS.PREPARING) {
+      return '#ffc107';
+    }
+    if (status === 'completed' || status === ORDER_STATUS.COMPLETED) {
+      return '#28a745';
+    }
+    return '#6c757d';
+  };
+
+  const getStatusDisplayText = (status) => {
+    if (status === 'received') return '주문 접수';
+    if (status === 'preparing') return '제조 중';
+    if (status === 'completed') return '제조 완료';
+    return status; // 로컬 데이터의 경우 그대로 표시
   };
 
   return (
@@ -63,14 +105,14 @@ function OrderManagement({ orders, onUpdateOrderStatus }) {
             <div key={order.id} className="order-item">
               <div className="order-info">
                 <div className="order-time">
-                  {formatDateTime(order.orderTime)}
+                  {formatDateTime(order.order_time || order.orderTime)}
                 </div>
                 <div className="order-details">
                   <div className="order-items">
                     {formatOrderItems(order.items)}
                   </div>
                   <div className="order-total">
-                    {order.totalPrice.toLocaleString()}원
+                    {(order.total_amount || order.totalPrice || 0).toLocaleString()}원
                   </div>
                 </div>
               </div>
@@ -79,7 +121,7 @@ function OrderManagement({ orders, onUpdateOrderStatus }) {
                   className="order-status"
                   style={{ color: getStatusColor(order.status) }}
                 >
-                  {order.status}
+                  {getStatusDisplayText(order.status)}
                 </div>
                 <button
                   className={`status-btn ${order.status.toLowerCase().replace(' ', '-')}`}
@@ -89,7 +131,7 @@ function OrderManagement({ orders, onUpdateOrderStatus }) {
                       onUpdateOrderStatus(order.id, nextStatus);
                     }
                   }}
-                  disabled={order.status === ORDER_STATUS.COMPLETED}
+                  disabled={order.status === 'completed' || order.status === ORDER_STATUS.COMPLETED}
                 >
                   {getStatusButtonText(order.status)}
                 </button>

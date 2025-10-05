@@ -6,6 +6,8 @@ import './App.css'
 function App() {
   const [currentPage, setCurrentPage] = useState('order')
 
+  console.log('App 렌더링:', { currentPage });
+
   return (
     <div className="app">
       <header className="app-header">

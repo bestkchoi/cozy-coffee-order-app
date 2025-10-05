@@ -1,0 +1,123 @@
+.inventory-management {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.inventory-title {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 12px;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.inventory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s;
+}
+
+.inventory-item:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.stock-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stock-count {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #007bff;
+}
+
+.stock-status {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.stock-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.stock-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #007bff;
+  background: white;
+  color: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.stock-btn:hover {
+  background: #007bff;
+  color: white;
+}
+
+.stock-btn:disabled {
+  border-color: #ccc;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.stock-btn:disabled:hover {
+  background: white;
+  color: #ccc;
+}
+
+@media (max-width: 768px) {
+  .inventory-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .inventory-item {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .stock-info {
+    justify-content: center;
+  }
+}

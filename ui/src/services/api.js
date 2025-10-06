@@ -1,6 +1,6 @@
 // API 서비스 클래스
 class ApiService {
-  constructor(baseURL = 'http://localhost:3001') {
+  constructor(baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001') {
     this.baseURL = baseURL;
   }
 

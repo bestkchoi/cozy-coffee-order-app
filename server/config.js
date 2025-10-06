@@ -18,7 +18,11 @@ const config = {
   
   // CORS 설정
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'https://order-app-fronted.onrender.com',
+      'https://cozy-order-frontend.onrender.com'
+    ],
     credentials: true
   }
 };

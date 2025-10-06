@@ -12,6 +12,8 @@
     "db:migrate:deploy": "npx prisma migrate deploy",
     "db:studio": "npx prisma studio",
     "build": "npx prisma generate",
+    "postinstall": "npx prisma generate",
+    "deploy": "npx prisma migrate deploy && npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

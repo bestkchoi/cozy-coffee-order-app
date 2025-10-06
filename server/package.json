@@ -13,7 +13,7 @@
     "db:studio": "npx prisma studio",
     "build": "npx prisma generate",
     "postinstall": "npx prisma generate",
-    "deploy": "npx prisma migrate deploy && npm start",
+    "deploy": "node deploy.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

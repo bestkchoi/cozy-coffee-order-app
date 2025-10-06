@@ -23,21 +23,24 @@ async function seed() {
           description: "진한 에스프레소에 시원한 얼음을 넣은 클래식 아메리카노",
           price: 4000,
           stock: 10,
-          category: "coffee"
+          category: "coffee",
+          imageUrl: "/images/americano-ice.jpg"
         },
         {
           name: "아메리카노(HOT)",
           description: "따뜻한 에스프레소에 뜨거운 물을 넣은 클래식 아메리카노",
           price: 4000,
           stock: 8,
-          category: "coffee"
+          category: "coffee",
+          imageUrl: "/images/americano-hot.jpg"
         },
         {
           name: "카페라떼",
           description: "부드러운 우유 거품과 에스프레소의 완벽한 조화",
           price: 5000,
           stock: 12,
-          category: "coffee"
+          category: "coffee",
+          imageUrl: "/images/caffe-latte.jpg"
         },
         {
           name: "카페모카",

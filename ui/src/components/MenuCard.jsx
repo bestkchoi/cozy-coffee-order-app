@@ -37,9 +37,13 @@ function MenuCard({ menuItem, onAddToCart }) {
   return (
     <div className="menu-card">
       <div className="menu-image">
-        <div className="image-placeholder">
-          <span>☕</span>
-        </div>
+        {menuItem.image_url && (
+          <img 
+            src={menuItem.image_url} 
+            alt={menuItem.name}
+            className="menu-image-img"
+          />
+        )}
       </div>
       
       <div className="menu-info">
